@@ -309,7 +309,7 @@ class Launcher final : public Rml::EventListener {
         case 1:
             return {"volume", "music-volume", "sfx-volume", "mute", "reverb"};
         case 2:
-            return {"unlock-all", "frozen-stadium", "free-camera", "ucf"};
+            return {"unlock-all", "frozen-stadium", "free-camera", "ucf", "cstick-1p"};
         case 4:
             return {"net-name", "net-target", "net-delay"};
         case 5:
@@ -570,6 +570,7 @@ class Launcher final : public Rml::EventListener {
         text("frozen-stadium", prefs.frozen_stadium ? "Hazardless" : "Normal");
         text("free-camera", prefs.free_camera ? "Free" : "Normal");
         text("ucf", std::getenv("MELEE_UCF") ? "Environment override" : prefs.ucf ? "On" : "Off");
+        text("cstick-1p", prefs.cstick_1p ? "Attacks" : "Normal");
         text("unlock-all", prefs.unlock_all ? "Unlocked" : "Normal");
         text("backend", backend_name(prefs.backend));
         slider("volume", prefs.volume * 100.0f);
@@ -806,6 +807,11 @@ class Launcher final : public Rml::EventListener {
             save();
             refresh_settings();
             element("ucf")->Focus();
+        } else if (id == "cstick-1p") {
+            prefs.cstick_1p = !prefs.cstick_1p;
+            save();
+            refresh_settings();
+            element("cstick-1p")->Focus();
         } else if (id == "unlock-all") {
             prefs.unlock_all = !prefs.unlock_all;
             save();
@@ -1461,7 +1467,7 @@ public:
             return {"volume", "music-volume", "sfx-volume", "mute", "reverb", "fps", "scale",
                 "port-check-update"};
         case 2:
-            return {"unlock-all", "frozen-stadium", "free-camera", "ucf"};
+            return {"unlock-all", "frozen-stadium", "free-camera", "ucf", "cstick-1p"};
         case 4:
             return {"net-name", "net-target", "net-delay"};
         default: {
@@ -1664,6 +1670,7 @@ public:
         label("frozen-stadium", prefs.frozen_stadium ? "Hazardless" : "Normal");
         label("free-camera", prefs.free_camera ? "Free" : "Normal");
         label("ucf", std::getenv("MELEE_UCF") ? "Environment override" : prefs.ucf ? "On" : "Off");
+        label("cstick-1p", prefs.cstick_1p ? "Attacks" : "Normal");
         label("unlock-all", prefs.unlock_all ? "Unlocked" : "Normal");
         label("backend", backend_name(prefs.backend));
         slider("volume", prefs.volume * 100.0f);
@@ -1929,6 +1936,8 @@ public:
             prefs.free_camera = !prefs.free_camera;
         } else if (id == "ucf") {
             prefs.ucf = !prefs.ucf;
+        } else if (id == "cstick-1p") {
+            prefs.cstick_1p = !prefs.cstick_1p;
         } else if (id == "unlock-all") {
             prefs.unlock_all = !prefs.unlock_all;
         } else if (id == "backend") {
@@ -2303,6 +2312,12 @@ extern "C" bool pc_is_frozen_stadium_enabled(void) {
  * a RULES field. */
 extern "C" bool pc_is_free_camera_enabled(void) {
     return !pc_net_deterministic() && prefs.free_camera;
+}
+/* The C-stick only does anything in single-player modes when this is on, and
+ * netplay runs VS modes, but a session pins it off like free camera so the
+ * simulation never reads a local preference there. */
+extern "C" bool pc_is_cstick_1p_enabled(void) {
+    return !pc_net_deterministic() && prefs.cstick_1p;
 }
 extern "C" uint64_t pc_install_id(void) {
     return prefs.install_id;
